@@ -1,6 +1,7 @@
 const express = require('express');
 const connectDB = require('./config/db');
 const swaggerUi = require('swagger-ui-express');
+const cors = require('cors');
 const swaggerSpec = require('./swagger');
 const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
@@ -23,7 +24,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
+app.use(cors());
 
 // tell the express app to use the routes
 app.use('/api/auth', authRoutes);
