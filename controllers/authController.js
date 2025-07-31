@@ -8,9 +8,24 @@ const generateToken = require('../utils/generateToken');
 exports.registerUser = async (req, res) => {
     const {firstname, lastname, email, password} = req.body;
 
-    // Validate the fields
+    // check for missing fields 
     if(!firstname || !lastname || !email || !password) {
         return res.status(400).json({message: 'All fields are required'});
+    }
+
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if(!emailRegex.test(email)){
+        return res.status(400).json({message: 'Invalid email format'});
+    }
+
+    // Validate password strength
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?#&])[A-Za-z\d@$!%*?#&]{8,}$/;
+    if(!passwordRegex.test(password)) {
+        return res.status(400).json({message:
+            'password must be at least 8 characters long and include uppercase, lowercase, number, and special character'
+        });
     }
 
     try {
@@ -74,6 +89,47 @@ exports.loginUser = async (req, res) => {
         return res.status(500).json({message: err.message});
     }
 }
+
+
+
+// Register admin - only for existing admins
+exports.registerAdmin = async(req, res) => {
+    const {firstname, lastname, email, password} = req.body;
+
+    // Validate fields
+    if(!firstname || !lastname || !email || !password) {
+        return res.status(400).json({message: 'All fields are required'});
+    }
+
+    try {
+        const existingUser = await User.findOne({email});
+        if(existingUser){
+            return res.status(400).json({message: 'Email already in use'});
+        }
+
+        const newUser = new User({
+            firstname,
+            lastname,
+            email,
+            password,
+            isAdmin: true
+        });
+
+        await newUser.save();
+
+        res.status(201).json({
+            message: 'Admin created successfully',
+            user: {
+                id: newUser._id,
+                firstname: newUser.firstname,
+                email: newUser.email,
+                isAdmin: newUser.isAdmin
+            }
+        });
+    } catch (err) {
+        res.status(500).json({message: err.message});
+    }
+};
 
 
 

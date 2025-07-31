@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const {registerUser} = require('../controllers/authController');
-const {loginUser} = require('../controllers/authController');
+const {registerUser, loginUser, registerAdmin} = require('../controllers/authController');
 const {protect} = require('../middlewares/authMiddleware');
+const {admin} = require('../middlewares/adminMiddleware');
 
 
 
@@ -74,6 +74,37 @@ router.post('/login', loginUser);
 
 
 
+/**
+ * @swagger
+ * /api/auth/register-admin:
+ *   post:
+ *     summary: Register an admin (only existing admins can create new admins)
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [firstname, lastname, email, password]
+ *             properties:
+ *               firstname:
+ *                 type: string
+ *               lastname:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Admin registered successfully
+ *       400:
+ *         description: Email already exists or bad data
+ */
+router.post('/register-admin', protect, admin, registerAdmin);
 
 
 module.exports = router;

@@ -24,11 +24,9 @@ const {initializePayment, verifyPayment} = require('../controllers/paymentContro
  *         application/json:
  *           schema:
  *             type: object
- *             required: [email, shippingAddress]
+ *             required: [shippingAddress]
  *             properties:
- *               email:
- *                 type: string
- *               shippingAddress:
+ *                shippingAddress:
  *                 type: string
  *     responses:
  *       200:

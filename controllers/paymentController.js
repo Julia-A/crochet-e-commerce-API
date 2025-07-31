@@ -1,13 +1,15 @@
 const axios = require('axios');
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
+const Product = require('../models/Product');
 
 
 // initialize a payment - Controller
 const initializePayment = async (req, res) => {
     // get the user's information from the request
-    const {email, shippingAddress} = req.body;
+    const {shippingAddress} = req.body;
     const userId = req.user._id;
+    const email = req.user.email;
 
     try {
 
@@ -24,7 +26,9 @@ const initializePayment = async (req, res) => {
             quantity: item.quantity,
             price: item.product.price
         }));
-        const totalPrice = orderItems.reduce((acc, item) => acc + (item.price * item.quantity));
+        const totalPrice = cart.items.reduce((acc, item) => {
+            return acc + item.product.price * item.quantity;
+        }, 0);
 
         // Initiating paystack
         // axios uses this syntax: axios.post(url, body, {headers: header information});
@@ -32,9 +36,13 @@ const initializePayment = async (req, res) => {
         const headers = {Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`, 'Content-Type': 'application/json'};
         const body = {
             email,
-            amount: totalPrice * 100, // Paystack only accepts subunits of currency, in this case it's kobo 
-            callback_url: 'https://localhost:5000/api/payment/verify' // this is the route that paystack redirects to after the user payment
+            amount: Math.round(totalPrice * 100), // Paystack only accepts subunits of currency, in this case it's kobo 
+            callback_url: 'https://crochet-e-commerce-api.onrender.com/api/payment/verify' // this is the route that paystack redirects to after the user payment
         };
+
+        if (totalPrice <= 0) {
+            return res.status(400).json({message: 'Invalid cart total'});
+        }
         
         // Now we call on axios.post and assign the data sent to this constant/variable called response 
         const response = await axios.post('https://api.paystack.co/transaction/initialize', body, {headers});
@@ -54,6 +62,7 @@ const initializePayment = async (req, res) => {
         // if successful, return with this json
         res.json({
             message:'payment initialized successfully',
+            orderId: newOrder._id,
             data: response.data     // Contains authorization_url and reference
         });
     } catch (err) {
@@ -88,9 +97,18 @@ const verifyPayment = async (req, res) => {
                 return res.status(400).json({message: 'Order not found for this transaction'})
             }
 
-            // Update paymentStatus in order
+            // Update paymentStatus in order and update product stock quantities
             order.paymentStatus = 'paid';
             order.status = 'processing';
+
+            for(const item of order.orderItems) {
+                const product = await Product.findById(item.product);
+
+                if(product) {
+                    product.countInStock -= item.quantity;
+                    await product.save();
+                }
+            }
             await order.save();
 
             // empty user's cart
