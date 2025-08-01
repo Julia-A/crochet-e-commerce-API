@@ -6,7 +6,7 @@ This is a RESTful API for an e-commerce platform built with **Node.js**, **Expre
 
 ## 🌐 Live Demo
 
-> 🔗 [View the Live API on Render](https://your-deployed-api.onrender.com)
+> 🔗 [View the Live API on Render](https://crochet-e-commerce-api.onrender.com)
 
 > 🔍 **Swagger API Docs**:  
 Visit the link above and **append `/api-docs`** to access the full API documentation:  
