@@ -2,7 +2,7 @@ const axios = require('axios');
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
-
+const sendEmail = require('../utils/sendEmail');
 
 // initialize a payment - Controller
 const initializePayment = async (req, res) => {
@@ -110,6 +110,18 @@ const verifyPayment = async (req, res) => {
                 }
             }
             await order.save();
+
+            await sendEmail(
+                req.user.email,
+                'Your Crochet Store Order Confirmation',
+                `
+                    <h1>Order Confirmation</h1>
+                    <p>Thank you for your order!</p>
+                    <p>Your order ID: <b>${order._id}</b></p>
+                    <p>Total Amount: <b>₦${order.totalPrice}</b></p>
+                    <p>We will ship your items soon.</p>
+                `
+            );
 
             // empty user's cart
             await Cart.findOneAndDelete({user: req.user._id});
