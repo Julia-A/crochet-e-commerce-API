@@ -44,7 +44,7 @@ router.get('/', protect, getCart); // Get cart
  *             type: object
  *             required: [product, quantity]
  *             properties:
- *               productId:
+ *               product:
  *                 type: string
  *               quantity:
  *                 type: number
