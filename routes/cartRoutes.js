@@ -42,7 +42,7 @@ router.get('/', protect, getCart); // Get cart
  *         application/json:
  *           schema:
  *             type: object
- *             required: [productId, quantity]
+ *             required: [product, quantity]
  *             properties:
  *               productId:
  *                 type: string
